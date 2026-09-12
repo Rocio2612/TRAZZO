@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Ignorar hooks de shadcn (falso positivo de react-hooks/set-state-in-effect)
+    "hooks/use-mobile.ts",
   ]),
 ]);
 
