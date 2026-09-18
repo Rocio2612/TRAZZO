@@ -1,0 +1,242 @@
+//Bloque 1: Conexion y generador
+//Trae la librería interna @prisma/client.
+generator client {
+    provider = "prisma-client-js"
+}
+
+//Declaracion de base (se usa postgresql con dos conexiones distintas)
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+//Bloque 2:Nucleo Transversal (Identidad y config)
+model Usuario {
+  id              String          @id // ID provisto por Clerk
+  email           String          @unique
+  nombre          String
+  creado_en       DateTime        @default(now())
+  negocio         Negocio?
+  materiales      Material[] //Permiten navegar desde el usuario hacia sus datos sin existir como columnas físicas en SQL
+  recetas         Receta[]
+  producciones    Produccion[]
+  productosListos ProductoListo[]
+  pedidos         Pedido[]
+  ventas          Venta[]
+  gastos          Gasto[]
+
+  @@map("usuarios") //@@map("..."): Hace que el modelo en codigo se llame en singular pero en la tabla fisica (PostgreSQL) en minusculas y plural.
+}
+
+model Negocio {
+  id         Int         @id @default(autoincrement())
+  usuario_id String      @unique
+  usuario    Usuario     @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  nombre     String
+  tipo       TipoNegocio
+  creado_en  DateTime    @default(now())
+
+  @@map("negocios")
+}
+
+//Se usa enum para restringir las opciones validas a TALLER, MOSTRADOS O AMBOS.
+enum TipoNegocio {
+  TALLER
+  MOSTRADOR
+  AMBOS
+}
+
+//Bloque 3: Dominio Taller (Insumos, formulas y produccion)
+model Material {
+  id             Int              @id @default(autoincrement())
+  usuario_id     String
+  usuario        Usuario          @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  nombre         String
+  unidad_medida  UnidadMedida
+  cantidad       Decimal          @default(0) @db.Decimal(12, 2)
+  stock_minimo   Decimal          @default(0) @db.Decimal(12, 2)
+  costo_unitario Decimal          @default(0) @db.Decimal(10, 2)
+  descripcion    String?
+  recetas        RecetaMaterial[]
+  gastos         Gasto[]
+
+  @@index([usuario_id])
+  @@map("materiales")
+}
+
+enum UnidadMedida {
+  UNIDAD
+  KG
+  LITROS
+  METROS
+}
+
+model Receta { //Formula tecnica del producto
+  id              Int              @id @default(autoincrement())
+  usuario_id      String
+  usuario         Usuario          @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  nombre          String
+  descripcion     String?
+  materiales      RecetaMaterial[]
+  producciones    Produccion[]
+  productosListos ProductoListo[]
+  pedidoDetalles  PedidoDetalle[]
+
+  @@index([usuario_id])
+  @@map("recetas")
+}
+
+model RecetaMaterial {
+  id                Int      @id @default(autoincrement())
+  receta_id         Int
+  receta            Receta   @relation(fields: [receta_id], references: [id], onDelete: Cascade)
+  material_id       Int
+  material          Material @relation(fields: [material_id], references: [id], onDelete: Restrict)
+  cantidad_necesaria Decimal  @db.Decimal(10, 2)
+
+  @@unique([receta_id, material_id]) //Impide que se agregen dos veces el mismo insumo a una misma receta.
+  @@map("receta_materiales")
+}
+
+model Produccion {
+  id                Int           @id @default(autoincrement())
+  usuario_id        String
+  usuario           Usuario       @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  receta_id         Int
+  receta            Receta        @relation(fields: [receta_id], references: [id], onDelete: Restrict)
+  producto_listo_id Int
+  productoListo     ProductoListo @relation(fields: [producto_listo_id], references: [id], onDelete: Restrict)
+  cantidad          Int
+  fecha             DateTime      @default(now())
+
+  @@index([usuario_id])
+  @@map("producciones")
+}
+
+//Bloque 4: Dominio Mostrador (Venta, pedido y gastos)
+model ProductoListo {
+  id             Int             @id @default(autoincrement())
+  usuario_id     String
+  usuario        Usuario         @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  nombre         String
+  precio_venta   Decimal         @db.Decimal(10, 2)
+  stock_actual   Int             @default(0)
+  stock_minimo   Int             @default(0)
+  origen         OrigenProducto
+  receta_id      Int? //Si el origen es reventa, queda nulo. Si es Fabricado, guarda la receta de origen con onDelete: SetNull
+  receta         Receta?         @relation(fields: [receta_id], references: [id], onDelete: SetNull)
+  producciones   Produccion[]
+  pedidoDetalles PedidoDetalle[]
+  ventaDetalles  VentaDetalle[]
+  gastos         Gasto[]
+
+  @@index([usuario_id])
+  @@map("productos_listos")
+}
+
+enum OrigenProducto {
+  FABRICADO
+  REVENTA
+}
+
+model Pedido {
+  id            Int             @id @default(autoincrement())
+  usuario_id    String
+  usuario       Usuario         @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  numero        Int
+  cliente       String
+  fecha         DateTime        @default(now())
+  estado_pago   EstadoPago      @default(NO_PAGADO)
+  estado_pedido EstadoPedido    @default(PENDIENTE)
+  descripcion   String?
+  monto_total   Decimal         @db.Decimal(10, 2)
+  venta         Venta?
+  detalles      PedidoDetalle[]
+
+  @@unique([usuario_id, numero]) //Hace que el número de pedido empiece en 1 para cada emprendedor de forma aislada.
+  @@index([usuario_id])
+  @@map("pedidos")
+}
+
+enum EstadoPago {
+  NO_PAGADO
+  PARCIAL
+  PAGADO_TOTAL
+}
+
+enum EstadoPedido {
+  PENDIENTE
+  CANCELADO
+  ENTREGADO
+}
+
+model PedidoDetalle {
+  id                Int            @id @default(autoincrement())
+  pedido_id         Int
+  pedido            Pedido         @relation(fields: [pedido_id], references: [id], onDelete: Cascade)
+  producto_listo_id Int?
+  productoListo     ProductoListo? @relation(fields: [producto_listo_id], references: [id], onDelete: Restrict)
+  receta_id         Int?
+  receta            Receta?        @relation(fields: [receta_id], references: [id], onDelete: Restrict)
+  cantidad          Int
+  precio_unitario   Decimal        @db.Decimal(10, 2)
+
+  @@map("pedido_detalles")
+}
+
+model Venta {
+  id          Int            @id @default(autoincrement())
+  usuario_id  String
+  usuario     Usuario        @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  pedido_id   Int?           @unique
+  pedido      Pedido?        @relation(fields: [pedido_id], references: [id], onDelete: SetNull)
+  cliente     String?
+  fecha       DateTime       @default(now())
+  monto_total Decimal        @db.Decimal(10, 2)
+  origen      OrigenVenta
+  detalles    VentaDetalle[]
+
+  @@index([usuario_id])
+  @@map("ventas")
+}
+
+enum OrigenVenta {
+  DIRECTA
+  PEDIDO
+}
+
+model VentaDetalle {
+  id                Int           @id @default(autoincrement())
+  venta_id          Int
+  venta             Venta         @relation(fields: [venta_id], references: [id], onDelete: Cascade)
+  producto_listo_id Int
+  productoListo     ProductoListo @relation(fields: [producto_listo_id], references: [id], onDelete: Restrict)
+  cantidad          Int
+  precio_unitario   Decimal       @db.Decimal(10, 2)
+
+  @@map("venta_detalles")
+}
+
+model Gasto {
+  id                Int            @id @default(autoincrement())
+  usuario_id        String
+  usuario           Usuario        @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  tipo              TipoGasto
+  descripcion       String
+  categoria         String?
+  monto             Decimal        @db.Decimal(10, 2)
+  fecha             DateTime       @default(now())
+  material_id       Int? //Esta clave y la de producto_listo-id son anulables para permitir gastos generales sin inventario asociado.
+  material          Material?      @relation(fields: [material_id], references: [id], onDelete: SetNull)
+  producto_listo_id Int?
+  productoListo     ProductoListo? @relation(fields: [producto_listo_id], references: [id], onDelete: SetNull)
+
+  @@index([usuario_id])
+  @@map("gastos")
+}
+
+enum TipoGasto {
+  VARIABLE
+  EXTRA
+}
