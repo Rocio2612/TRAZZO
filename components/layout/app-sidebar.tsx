@@ -11,6 +11,8 @@ import {
   TrendingDown,
   BarChart3,
   Bell,
+  FlaskConical,
+  Hammer,
 } from 'lucide-react';
 
 import {
@@ -25,19 +27,34 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
-const items = [
-  { title: 'Inicio', url: '/', icon: Home },
-  { title: 'Materiales', url: '/materiales', icon: Package },
-  { title: 'Productos', url: '/productos', icon: ShoppingBag },
-  { title: 'Pedidos', url: '/pedidos', icon: ClipboardList },
-  { title: 'Ventas', url: '/ventas', icon: DollarSign },
-  { title: 'Gastos', url: '/gastos', icon: TrendingDown },
-  { title: 'Reporte', url: '/reporte', icon: BarChart3 },
-  { title: 'Notificaciones', url: '/notificaciones', icon: Bell },
-];
+interface AppSidebarProps {
+  mostrarTaller: boolean;
+  mostrarMostrador: boolean;
+}
 
-export function AppSidebar() {
+export function AppSidebar({ mostrarTaller, mostrarMostrador }: AppSidebarProps) {
   const pathname = usePathname();
+
+  const items = [
+    { title: 'Inicio', url: '/', icon: Home },
+    ...(mostrarTaller
+      ? [
+          { title: 'Materiales', url: '/taller/materiales', icon: Package },
+          { title: 'Recetas', url: '/taller/recetas', icon: FlaskConical },
+          { title: 'Producción', url: '/taller/produccion', icon: Hammer },
+        ]
+      : []),
+    ...(mostrarMostrador
+      ? [
+          { title: 'Productos', url: '/mostrador/productos', icon: ShoppingBag },
+          { title: 'Pedidos', url: '/mostrador/pedidos', icon: ClipboardList },
+          { title: 'Ventas', url: '/mostrador/ventas', icon: DollarSign },
+          { title: 'Gastos', url: '/mostrador/gastos', icon: TrendingDown },
+        ]
+      : []),
+    { title: 'Reporte', url: '/reporte', icon: BarChart3 },
+    { title: 'Notificaciones', url: '/notificaciones', icon: Bell },
+  ];
 
   return (
     <Sidebar collapsible="icon">
