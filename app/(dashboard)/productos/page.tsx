@@ -1,5 +1,6 @@
 import { listarProductosListos } from "@/lib/mostrador/actions/productos-listos";
 import { ProductosTable } from "./productos-table";
+import { NuevoProductoDialog } from "./nuevo-producto-dialog";
 
 export default async function ProductosListosPage() {
   const productos = await listarProductosListos();
@@ -15,11 +16,17 @@ export default async function ProductosListosPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4">
+      {/* Cabecera con titulo, contador y boton de alta */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Productos</h1>
-        <p className="text-sm text-muted-foreground">
-          {productos.length} productos registrados
-        </p>
+        <div>
+          <h1 className="text-2xl font-semibold">Productos</h1>
+          <p className="text-sm text-muted-foreground">
+            {productos.length} productos registrados
+          </p>
+        </div>
+
+        {/* 2. Aca mostramos el boton negro con el modal */}
+        <NuevoProductoDialog />
       </div>
 
       <ProductosTable productos={productosSerializados} />

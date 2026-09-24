@@ -46,7 +46,7 @@ export function AppSidebar({ mostrarTaller, mostrarMostrador }: AppSidebarProps)
       : []),
     ...(mostrarMostrador
       ? [
-          { title: 'Productos', url: '/mostrador/productos', icon: ShoppingBag },
+          { title: 'Productos', url: '/productos', icon: ShoppingBag },
           { title: 'Pedidos', url: '/mostrador/pedidos', icon: ClipboardList },
           { title: 'Ventas', url: '/mostrador/ventas', icon: DollarSign },
           { title: 'Gastos', url: '/mostrador/gastos', icon: TrendingDown },

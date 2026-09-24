@@ -74,7 +74,7 @@ export type ProductoListoItem = {
  * Recupera el catálogo completo de productos listos pertenecientes al usuario en sesión.
  * Resuelve la serialización de Decimal a number y evalúa si existe stock bajo.
  */
-export async function obtenerProductosListos(): Promise<ProductoListoItem[]> {
+export async function listarProductosListos(): Promise<ProductoListoItem[]> {
   // 3.1. Verificación de identidad con Clerk
   const { userId } = await auth();
   if (!userId) {
