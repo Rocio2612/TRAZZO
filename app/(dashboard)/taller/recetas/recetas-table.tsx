@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { NuevaRecetaDialog } from './nueva-receta-dialog';
 import { EditarRecetaDialog } from './editar-receta-dialog';
 import { EliminarRecetaDialog } from './eliminar-receta-dialog';
+import { FabricarLoteDialog } from './fabricar-lote-dialog';
 
 interface MaterialEnReceta {
   id: number;
@@ -44,9 +45,16 @@ interface MaterialDisponible {
   costo_unitario: number;
 }
 
+interface ProductoDisponible {
+  id: number;
+  nombre: string;
+  stock_actual: number;
+}
+
 interface RecetasTableProps {
   recetas: RecetaSerializada[];
   materialesDisponibles: MaterialDisponible[];
+  productosDisponibles: ProductoDisponible[];
 }
 
 function calcularCostoReceta(materiales: MaterialEnReceta[]): number {
@@ -59,6 +67,7 @@ function calcularCostoReceta(materiales: MaterialEnReceta[]): number {
 export function RecetasTable({
   recetas,
   materialesDisponibles,
+  productosDisponibles,
 }: RecetasTableProps) {
   const [busqueda, setBusqueda] = useState('');
 
@@ -124,6 +133,10 @@ export function RecetasTable({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <FabricarLoteDialog
+                          receta={r}
+                          productosDisponibles={productosDisponibles}
+                        />
                         <EditarRecetaDialog
                           receta={r}
                           materialesDisponibles={materialesDisponibles}

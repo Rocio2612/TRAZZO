@@ -1,11 +1,13 @@
 import { listarRecetas } from '@/lib/taller/actions/recetas';
 import { listarMateriales } from '@/lib/taller/actions/materiales';
+import { listarProductosListos } from '@/lib/mostrador/actions/productos-listos';
 import { RecetasTable } from './recetas-table';
 
 export default async function RecetasPage() {
-  const [recetas, materiales] = await Promise.all([
+  const [recetas, materiales, productos] = await Promise.all([
     listarRecetas(),
     listarMateriales(),
+    listarProductosListos(),
   ]);
 
   // Serializar Decimals de Prisma a number (no se pueden pasar al Client Component)
@@ -28,12 +30,19 @@ export default async function RecetasPage() {
     cantidadPedidos: r.pedidoDetalles.length,
   }));
 
-  // Serializar materiales disponibles para el selector
+  // Serializar materiales disponibles
   const materialesDisponibles = materiales.map((m) => ({
     id: m.id,
     nombre: m.nombre,
     unidad_medida: m.unidad_medida,
     costo_unitario: Number(m.costo_unitario),
+  }));
+
+  // Serializar productos listos disponibles (para el modal de Fabricar)
+  const productosDisponibles = productos.map((p) => ({
+    id: p.id,
+    nombre: p.nombre,
+    stock_actual: p.stock_actual,
   }));
 
   return (
@@ -48,6 +57,7 @@ export default async function RecetasPage() {
       <RecetasTable
         recetas={recetasSerializadas}
         materialesDisponibles={materialesDisponibles}
+        productosDisponibles={productosDisponibles}
       />
     </div>
   );
