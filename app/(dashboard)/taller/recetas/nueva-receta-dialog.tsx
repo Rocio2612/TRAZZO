@@ -176,64 +176,85 @@ export function NuevaRecetaDialog({
               </p>
             ) : (
               <div className="flex flex-col gap-2">
-                {materiales.map((m, index) => (
-                  <div
-                    key={index}
-                    className="flex items-end gap-2 border rounded-lg p-3"
-                  >
-                    <div className="flex-1 flex flex-col gap-1">
-                      <Label className="text-xs">Material</Label>
-                      <Select
-                        value={m.material_id ? String(m.material_id) : ''}
-                        onValueChange={(valor) =>
-                          actualizarMaterial(
-                            index,
-                            'material_id',
-                            Number(valor)
-                          )
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Elegí un material" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {materialesDisponibles.map((md) => (
-                            <SelectItem key={md.id} value={String(md.id)}>
-                              {md.nombre} ({unidadLabels[md.unidad_medida]}) —
-                              ${md.costo_unitario.toFixed(2)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                {materiales.map((m, index) => {
+                  const materialSeleccionado = materialesDisponibles.find(
+                    (mat) => String(mat.id) === String(m.material_id)
+                  );
 
-                    <div className="w-32 flex flex-col gap-1">
-                      <Label className="text-xs">Cantidad</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        value={m.cantidad_necesaria}
-                        onChange={(e) =>
-                          actualizarMaterial(
-                            index,
-                            'cantidad_necesaria',
-                            Number(e.target.value)
-                          )
-                        }
-                      />
-                    </div>
-
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => quitarMaterial(index)}
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-end gap-3 border rounded-lg p-3 bg-muted/20"
                     >
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
+                      {/* 1. Selector de Material (toma todo el espacio disponible) */}
+                      <div className="flex-1 min-w-0 flex flex-col gap-1">
+                        <Label className="text-xs">Material</Label>
+                        <Select
+                          value={m.material_id ? String(m.material_id) : ''}
+                          onValueChange={(valor) =>
+                            actualizarMaterial(
+                              index,
+                              'material_id',
+                              Number(valor)
+                            )
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Elegí un material">
+                              {materialSeleccionado
+                                ? `${materialSeleccionado.nombre} (${unidadLabels[materialSeleccionado.unidad_medida]})`
+                                : undefined}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="min-w-[320px]">
+                            {materialesDisponibles.map((md) => (
+                              <SelectItem key={md.id} value={String(md.id)}>
+                                {md.nombre} ({unidadLabels[md.unidad_medida]}) — ${md.costo_unitario.toFixed(2)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* 2. Campo Cantidad compacto con unidad flotante */}
+                      <div className="w-32 shrink-0 flex flex-col gap-1">
+                        <Label className="text-xs">Cantidad</Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0.01"
+                            value={m.cantidad_necesaria}
+                            onChange={(e) =>
+                              actualizarMaterial(
+                                index,
+                                'cantidad_necesaria',
+                                Number(e.target.value)
+                              )
+                            }
+                            className="pr-10"
+                          />
+                          {materialSeleccionado && (
+                            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+                              {unidadLabels[materialSeleccionado.unidad_medida]}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 3. Botón Quitar */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => quitarMaterial(index)}
+                        className="size-9 shrink-0 text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

@@ -75,7 +75,7 @@ export function FabricarLoteDialog({
 
     setEnviando(true);
     try {
-      await fabricarLote(receta.id, cantidad, Number(productoListoId));
+      await fabricarLote(receta.id, Number(cantidad), Number(productoListoId));
       setOpen(false);
       resetear();
     } catch (error) {
