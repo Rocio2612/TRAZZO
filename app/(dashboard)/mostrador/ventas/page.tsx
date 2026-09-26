@@ -4,10 +4,10 @@ import { VentasTable } from "./ventas-table";
 import { NuevaVentaDialog } from "./nueva-venta-dialog";
 
 export default async function VentasPage() {
-  const [ventas, productos] = await Promise.all([
-    listarVentas(),
-    listarProductosListos(),
-  ]);
+  // Problema de colisión con codigo antiguo, se cambio por lo siguiente.
+  // Ejecución secuencial para no colisionar conexiones en el pooler de Supabase
+  const ventas = await listarVentas();
+  const productos = await listarProductosListos();
 
   // Prisma devuelve Decimal → hay que convertir a number para el Client Component
   const ventasSerializadas = ventas.map((v) => ({

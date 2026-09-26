@@ -160,10 +160,16 @@ export function NuevaVentaDialog({ productos }: NuevaVentaDialogProps) {
                 value={seleccionId}
                 onValueChange={(value) => setSeleccionId(value ?? "")}
               >
-                <SelectTrigger id="producto-venta">
-                  <SelectValue placeholder="Elegí un producto" />
+                <SelectTrigger id="producto-venta"className="w-full">
+                  <SelectValue placeholder="Elegí un producto">
+                    {/* 2. Mostramos el nombre explícito para evitar que imprima el ID crudo */}
+                    {(() => {
+                      const sel = productos.find((p) => String(p.id) === seleccionId);
+                      return sel ? `${sel.nombre} — $${sel.precio_venta.toFixed(2)}` : undefined;
+                    })()}
+                  </SelectValue>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="min-w-[320px]">
                   {disponibles.length === 0 ? (
                     <SelectItem value="_sin-stock" disabled>
                       No hay más productos con stock
