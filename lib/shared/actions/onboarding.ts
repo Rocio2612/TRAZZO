@@ -71,9 +71,19 @@ export async function crearNegocio(formData: FormData) {
   });
 
   if (negocioExistente) {
-    // Si ya tiene negocio, redirigir al dashboard
-    redirect('/');
-  }
+  // Actualizar el tipo y nombre si ya existe
+  await prisma.negocio.update({
+    where: { usuario_id: userId },
+    data: {
+      nombre: datos.nombre,
+      tipo: datos.tipo,
+    },
+  });
+
+  revalidatePath('/');
+  revalidatePath('/onboarding');
+  redirect('/');
+}
 
   // Ahora sí: Crear el negocio asociado al usuario que ya existe en Supabase
   await prisma.negocio.create({
