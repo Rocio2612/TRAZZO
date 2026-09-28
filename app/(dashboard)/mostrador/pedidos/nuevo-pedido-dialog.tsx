@@ -91,17 +91,7 @@ export function NuevoPedidoDialog() {
                 required
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="monto-senia-pedido">Seña inicial</Label>
-              <Input
-                id="monto-senia-pedido"
-                name="monto_senia"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue="0"
-              />
-            </div>
+            
           </div>
 
           <div className="flex flex-col gap-2">

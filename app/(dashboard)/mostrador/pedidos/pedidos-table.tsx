@@ -43,7 +43,6 @@ interface PedidoSerializado {
   estado_pago: string;
   estado_pedido: string;
   monto_total: number;
-  monto_senia: number;
 }
 
 interface PedidosTableProps {
@@ -113,7 +112,6 @@ export function PedidosTable({ pedidos }: PedidosTableProps) {
                     {estadoPedidoLabels[p.estado_pedido] ?? p.estado_pedido}
                   </TableCell>
                   <TableCell className="text-right">
-                    ${p.monto_senia.toFixed(2)}
                   </TableCell>
                   <TableCell className="text-right">
                     ${p.monto_total.toFixed(2)}

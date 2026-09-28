@@ -14,7 +14,6 @@ export default async function PedidosPage() {
     estado_pago: p.estado_pago,
     estado_pedido: p.estado_pedido,
     monto_total: Number(p.monto_total),
-    monto_senia: Number(p.monto_senia),
   }));
 
   return (
