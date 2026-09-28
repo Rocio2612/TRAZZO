@@ -3,7 +3,6 @@ import { Prisma } from '@prisma/client';
 
 /**
  * Aumenta el stock de un material (usado por gastos de compra)
- * Back 1 (Roci C) implementa esta función
  */
 export async function aumentarStockMaterial(
   tx: Prisma.TransactionClient,
